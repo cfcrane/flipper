@@ -1,0 +1,125 @@
+Usage: ./mapfromfile03142011.exe cfgfilename [max_cfg_line_length]
+
+cfgfilename is the name of the configuration file, including any necessary path information such as ../otherdirectory/cfgfilename or /fully_qualified_path/cfgfilename.  Flipper will do nothing without a valid configuration file.
+
+max_cfg_line_length is the length of the longest line in the configuration file, plus one.  It should be specified only if the longest line exceeds 512 characters.
+
+	The configuration file consists of triplets of parameter, "=", and value.  String values should not be in quotes.  Accordingly, file names should not include spaces.  File names should include any necessary relative or absolute paths.  An example of a valid configuration file is provided: deduptest_0219d30flipper.cfg 
+	The user can set these parameters in the configuration file:
+
+inputformat		one of "mapmaker", "bygene", or "byplant"
+	This mandatory parameter is the format of the file of genotype data for the mapping population.  The "mapmaker" format can be used for inbred and backcross populations that are segregating for at most two alleles at each locus, or for loss of heterozygosity in deletion mapping.  These populations can also be input in the "bygene" or "byplant" formats.  Other types of populations must be input in the "bygene" or "byplant" formats.
+ 
+datafile	string
+	This mandatory parameter is the name of the user-supplied file of genotype data for the mapping population.  If this file is not in the directory where Flipper is running, a relative or fully qualified path must be specified.  Example file: deduptest_0219d30fakeminhetsmpmk.txt
+
+rfracfile	string
+	This optional parameter is the name of a Flipper-generated file of tabulated recombination fractions output from a previous run of Flipper.  It can be used to read in locus numbers and recombination fractions when reading the datafile itself is too slow.
+
+dedupoutfile	string
+	This optional parameter is the name of a Flipper-generated file of genotype data for a deduplicated set of markers, where each included marker has nonzero recombination with all other included markers.  Setting this value will also set dedupoutflag to 1.
+
+prdfile	string
+	This optional parameter is the name of a user-supplied "pre-dosage" file that gives the copy number of each marker allele in the reference genotype.  The prdfile must be specified if the inputformat is "bygene" or "byplant".  The "mapmaker" format implicitly specifies the predosage values for each marker, so the prdfile need not be included in that case.
+
+outfile	string
+	This mandatory parameter is the name of the Flipper-generated output file where the map(s) will be printed.
+
+markernamesfile	string
+	This optional parameter is the name of a user-supplied file of marker names, which are kept separately from the integer marker indices that Flipper uses internally.  The "mapmaker" inputformat automatically propagates marker names to the array where they are stored, so it is not necessary to specify this parameter then.
+
+specialfile		string
+	This optional parameter is the name of a Flipper-generated file of recombination fractions to be output for use in subsequent runs of Flipper.  If specialfile is specified, recombfracfile must not be specified, and vice versa.  In practice, specialfile and recombfracfile will have the same name and represent write or read access to the same file.
+
+usedcodefile	string
+	This optional parameter is the name of a Flipper-generated file of the number of plants used for each marker.  It is used in conjunction with specialfile or rfracfile to account for missing data, so usedcodefile must be specified if either of these is used.
+
+segdisfile	string
+	This optional parameter is the name of a Flipper-generated file that stores the values of segregation distortion for each locus.  It is used in conjunction with specialfile or rfracfile and thus must be specified when they are specified.
+
+outafile	string
+	This optional parameter is the name of a user-supplied file of actual marker orders in simulations.  It can also be used to compare the linkage map to a physical map obtained experimentally.  Setting outafile sets outaflag to 1.  The outafile is in the format output by inbrsimulator.cpp or bcsimulator.cpp.  The provided example is deduptest_0219d30newouta.txt.
+
+queryfile	string
+	This optional parameter is the name of a user-supplied file of queried markers.  Flipper will give the map length over the order of these markers in the file, then permute them in all orders to find the shortest map order.  There should be no more than 10 markers in this file, since 10 is the maximum number that the permuter currently has coefficients for.
+
+measfile	string
+	This optional parameter is the name of a user-supplied file of quantitative measurements for each plant in the population.  The provided example is deduptest_0219d30measures.txt.
+
+kmax	integer	usually = 10
+	This mandatory parameter is the maximum number of markers to be permuted by any routine in Flipper.  Values above 10 are onerously slow.  Values below 8 will cause errors with the current end-annealing scheme for joins.
+
+nLoci	integer
+	This mandatory parameter is the number of loci to map, which depends on whether a uniparental or biparental map is wanted.
+
+plantsTotal	integer
+	This mandatory parameter is the number of individuals in the mapping population.  Yes, Flipper is chauvinistic; mice, flies, and fungal isolates are treated as plants.
+
+maxnamelength	integer
+	This mandatory parameter is the maximum length of any marker name in letters.
+
+testlocusa	integer, range [0-nLoci]
+testlocusb	integer, range [0-nLoci]
+	These optional parameters are the numbers of two loci, which are used to print out their mutual recombination fraction.  The user should specify both or neither.  These were primarily used during debugging, but a user might want to know the recombination fraction of two questionable markers if the map conflicts with physical information.
+
+minFracFirst	double precision, range [0-1.0]
+minFracSecond	double precision, range [0-minFracFirst]
+	These mandatory parameters are threshold fractions of non-missing data, with minFracFirst > minFracSecond.  Any locus genotyped in less than minFracSecond of the population will be excluded from the map because of too many missing data.
+
+lowcutoff	double precision, range [0.0-1.0]
+highcutoff	double precision, range [lowcutoff-1.0]
+	These optional parameters must be specified if measfile is specified.  They represent the fraction of lowest-valued and highest-valued individuals as measured for a quantitative trait.  Individuals within these ranges are used to calculate the frequency of the "A" allele of each marker in the low-valued and high-valued groups in a rudimentary QTL finder.
+
+baseNumber	integer
+	This still mandatory parameter is the number of chromosomes of the mapped species (n for uniparental maps, 2n for biparental maps).  It is actually used only when the obtained map is compared to a known simulated marker set or a physical map.
+
+ploidy	integer
+	This mandatory parameter is the effective ploidy of the mapped species.  It is used with plantsTotal in setting the bandwidth of effectively equal recombination fractions for cycles of joining.
+
+maxrf	double precision
+	This mandatory parameter is the maximum recombination fraction to consider in joining nascent linkage groups.  It should be the minimum necessary to condense out a chromosomal number of linkage groups.  Thus it will be one of the most frequently changed settings between consecutive runs of Flipper.
+
+maxminrf	double precision
+	This mandatory parameter is the maximum allowed value of the minimum recombination fraction of any locus with any other locus in the map.  Loci that exceed this value are excluded.
+
+dedupflag	integer
+	This optional parameter determines whether to deduplicate the marker set before ordering markers, i.e., whether to reduce all bins of cosegregating markers to single exemplars.
+
+continuation	integer
+	This mandatory parameter determines how many maps are produced: only the primary map for value 0, also the map stripped of high-recombining markers for value 1, or also the map with high recombining markers re-inserted after any joins of cleaned ends for value 2.
+
+exclusionflag	integer
+	This optional parameter determines whether to re-insert only the markers that had been removed from the primary map when continuation is set to 2.  A value of 1 limits the re-insertions, whereas a value of 0 allows all unbound markers that meet the limits for missing data and segregation distortion to be re-inserted.
+
+rfxflag	integer
+	This mandatory parameter, which has values from 0 through 8, controls the criteria to accept an insertion of one linkage group into the interior of another linkage group.
+
+rfxceiling	double precision
+	This optional parameter is a user-set maximum of recombination fractions to accept an insertion of one linkage group into the interior of another linkage group when rfxflag == 3 or 7.  It is intended to be less than maxrf.
+
+delta	double precision
+	This optional parameter is a small, user-set tolerance for the maximum of recombination fractions for accepting an insertion of one linkage group into the interior of another linkage group when rfxflag == 4 or 8. 
+
+segdisthreshold	double precision
+	This mandatory parameter is the minimum value of segregation distortion to exclude a marker from the map.
+
+maxprdlinelength	integer
+	This optional parameter is the maximum length of a line in the prdfile.  It acts only if the prdfile is defined and defaults to zero for MapMaker input.
+
+maxdatlinelength	integer
+	This mandatory parameter is the maximum length of a line in the datafile.
+
+permuteon	integer
+	This mandatory parameter determines whether and when to permute a sliding window of markers, like the "ripple" function of MapMaker or OneMap.  Three values are allowed: 0 (no permutation), 1 (permutation of the initial map without stripping out high-recombining markers), and 2 (permutation after stripping out high-recombining markers and performing any now-allowed joins of cleaned ends of linkage groups). 
+
+combineparents	integer
+	This mandatory parameter determines whether to produce a uniparental map, which presents all markers in the same order for both parents as a single map of n linkage groups, or a biparental map, which gives an independent marker order for each parent and 2n linkage groups overall.
+
+nfloop	integer
+	This optional parameter must be set if continuation >= 1.  It is the number of times that high-recombining markers are stripped from the map and re-inserted next to their nearest neighbors.  In current usage, this is set to 1.
+
+rfthreshold	double precision
+	This optional parameter is the minimum value of recombination fraction between a given marker and either of its two neighbors needed to strip a marker from the initial map.  It must be set if continuation >= 1.
+
+mincount	integer
+	This optional parameter must be set if continuation >= 1.  It is the maximum locus count of a linkage group to dismember completely when stripping high-recombining loci from the initial map.  An appropriate value will often be evident from a sudden drop in locus count from group n to group n+1 when the groups are numbered by locus count.
