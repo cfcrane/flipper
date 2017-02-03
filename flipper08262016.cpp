@@ -848,6 +848,7 @@ int main(int argc, char *argv[]) {
           if (line[0] == '\n' || line[0] == '\0' || line[0] == '#') continue; //Skip comments or blank lines.
           if (line[0] == '/' && (line[1] == '/' || line[1] == '\n')) continue;
           if (line[0] == '*') {
+            memset(tempname, '\0', maxnamelength);
             for (ivv = 1; ivv < maxnamelength; ivv++) {
               if (line[ivv] == '\n' || line[ivv] == '\0' || line[ivv] == '#') break;
               if (line[ivv] == '/' && (line[ivv+1] == '/' || line[ivv+1] == '\n')) break;
